@@ -32,6 +32,7 @@ class bigone(Exchange):
             'name': 'BigOne',
             'countries': 'USA',
             'rateLimit': 1000,
+            'userAgen': 'python-bigone',
             'version': None,
             'has': {
                 'CORS': False,
@@ -43,10 +44,7 @@ class bigone(Exchange):
             },
             'urls': {
                 'logo': 'https://big.one/assets/icons-49607d33ce9fc8cdcf62d9f51a73ddc7-favicon-32x32.png',
-                'api': {
-                    'public': 'https://api.big.one',
-                    'private': 'https://api.big.one',
-                },
+                'api': 'https://api.big.one',
                 'www': 'https://big.one/',
                 'doc': 'https://developer.big.one/',
             },
@@ -296,13 +294,12 @@ class bigone(Exchange):
         response = self.privateGetOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
-
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
         return response
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api]
+        url = self.urls['api']
         request = self.implode_params(path, params)
         url += '/' + request
         query = self.omit(params, self.extract_params(path))
@@ -312,12 +309,18 @@ class bigone(Exchange):
         else:
             headers = {
                 'Accept': 'application/json',
-                'User-Agent': 'python-bigone',
-                'Authorization': 'Bearer {}'.format(self.secret),
-                'Big-Device-Id': self.apiKey,
+                'User-Agent': self.userAgent,
+                'Authorization': 'Bearer {}'.format(self.apiKey),
+                'Big-Device-Id': self.uid,
             }
             if method == 'GET':
                 url += '?' + self.urlencode(params)
             else:
                 body = self.json(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+# if __name__ == '__main__':
+#     b = bigone()
+#     print(b.fetch_markets())
+
+
