@@ -329,10 +329,11 @@ class fcoin(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
+        market = self.market(symbol)
         response = self.privateGetOrderOrdersId(self.extend({
             'order_id': id,
         }, params))
-        return self.parse_order(response['data'])
+        return self.parse_order(response['data'], market)
 
     def parse_order(self, order, market=None):
         side = order['side']
@@ -452,3 +453,7 @@ class fcoin(Exchange):
                 url += '?' + self.urlencode(params)
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+if __name__ == '__main__':
+    ex = fcoin()
+    print(ex.fetch_order_book('BTC/USDT'))
