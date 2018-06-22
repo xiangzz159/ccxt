@@ -452,8 +452,3 @@ class fcoin(Exchange):
                 url += '?' + self.urlencode(params)
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-
-if __name__ == '__main__':
-    ex = fcoin()
-    print(ex.fetch_ohlcv('BTC/USDT'))
