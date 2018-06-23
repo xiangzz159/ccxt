@@ -299,7 +299,7 @@ class fcoin(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetAccountBalance(self.extend({}, params))
+        response = self.privateGetAccountsBalance()
         balances = response['data']
         result = {'info': response}
         for balance in balances:
@@ -409,12 +409,12 @@ class fcoin(Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostOrdersOrderIdSubmit-cancel({'order_id': id})
+        return self.privatePostOrdersOrderIdSubmitCancel({'order_id': id})
 
     def get_signed(self, sig_str):
         """signed params use sha512"""
         sig_str = base64.b64encode(sig_str)
-        signature = base64.b64encode(hmac.new(self.secret, sig_str, digestmod=hashlib.sha1).digest())
+        signature = base64.b64encode(hmac.new(bytes(self.secret, 'utf-8'), sig_str, digestmod=hashlib.sha1).digest())
         return signature
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -423,16 +423,15 @@ class fcoin(Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
             self.check_required_credentials()
-
             param = ''
             if params != {}:
-                sort_pay = sorted(payload.items())
+                sort_pay = sorted(params.items())
                 # sort_pay.sort()
                 for k in sort_pay:
                     param += '&' + str(k[0]) + '=' + str(k[1])
                 param = param.lstrip('&')
             timestamp = str(int(time.time() * 1000))
-            full_url = self.base_url + api_url
+            full_url = self.urls['api'] + url
 
             if method == 'GET':
                 if param:
@@ -444,7 +443,7 @@ class fcoin(Exchange):
             signature = self.get_signed(bytes(sig_str, 'utf-8'))
 
             headers = {
-                'FC-ACCESS-KEY': self.key,
+                'FC-ACCESS-KEY': self.apiKey,
                 'FC-ACCESS-SIGNATURE': signature,
                 'FC-ACCESS-TIMESTAMP': timestamp
             }
@@ -453,7 +452,3 @@ class fcoin(Exchange):
                 url += '?' + self.urlencode(params)
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-if __name__ == '__main__':
-    ex = fcoin()
-    print(ex.fetch_order_book('BTC/USDT'))

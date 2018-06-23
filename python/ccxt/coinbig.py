@@ -393,12 +393,3 @@ class coinbig(Exchange):
                 url += '?' + self.urlencode(params)
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-
-if __name__ == '__main__':
-    ex = coinbig({
-        'apiKey': 'EDDBFC562C1A42774FBF2CF2DAB3CE30',
-        'secret': 'E73CA6A88E7CF276B5D36076A974A8C0'
-    })
-    # print(ex.fetch_ohlcv('BTC/USDT'))
-    print(ex.create_order('BTC/USDT', 'limit', 'buy', 1.0, 6780))
