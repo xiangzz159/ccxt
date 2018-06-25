@@ -29,7 +29,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class fcoin(Exchange):
+class fcoin (Exchange):
 
     def describe(self):
         return self.deep_extend(super(fcoin, self).describe(), {
@@ -305,10 +305,10 @@ class fcoin(Exchange):
         for balance in balances:
             uppercase = balance['currency'].upper()
             currency = self.common_currency_code(uppercase)
-            account = None
-            account['fee'] = currency['avaliable']
-            account['used'] = currency['frozen']
-            account['total'] = currency['balance']
+            account = dict()
+            account['free'] = balance['available']
+            account['used'] = balance['frozen']
+            account['total'] = balance['balance']
             result[currency] = account
         return self.parse_balance(result)
 
@@ -402,7 +402,7 @@ class fcoin(Exchange):
         }
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
-        response = self.privatePostOrder(self.extend(order, params))
+        response = self.privatePostOrders(self.extend(order, params))
         return {
             'info': response,
             'id': response['data'],
@@ -418,7 +418,11 @@ class fcoin(Exchange):
         return signature
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = '/' + self.version + '/' + api
+        if api == 'private':
+            url = '/' + self.version
+        else:
+            url = '/' + self.version + '/' + api
+
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
@@ -444,9 +448,13 @@ class fcoin(Exchange):
 
             headers = {
                 'FC-ACCESS-KEY': self.apiKey,
-                'FC-ACCESS-SIGNATURE': signature,
+                'FC-ACCESS-SIGNATURE': signature.decode(),
                 'FC-ACCESS-TIMESTAMP': timestamp
             }
+
+            if method == 'POST':
+                body = self.json(query)
+                headers['Content-Type'] = 'application/json'
         else:
             if params:
                 url += '?' + self.urlencode(params)
